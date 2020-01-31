@@ -312,7 +312,7 @@ impl<'a> SearchBuilder<'a> {
                         "_proximity" => builder.push(Proximity),
                         "_attribute" => builder.push(Attribute),
                         "_words_position" => builder.push(WordsPosition),
-                        "_exact" => builder.push(Exact),
+                        "_exactness" => builder.push(Exactness),
                         _ => {
                             let order = match ranking_rules.get(rule.as_str()) {
                                 Some(o) => o,
@@ -342,7 +342,7 @@ impl<'a> SearchBuilder<'a> {
                 builder.push(Proximity);
                 builder.push(Attribute);
                 builder.push(WordsPosition);
-                builder.push(Exact);
+                builder.push(Exactness);
                 for (rule, order) in ranking_rules.iter() {
                     let custom_ranking = match order {
                         RankingOrdering::Asc => {
