@@ -331,7 +331,7 @@ where
     }
 
     if props.is_ranked() {
-        let number = value.serialize(ConvertToNumber)?;
+        let number = value.serialize(ConvertToNumber).unwrap_or_default();
         ranked_map.insert(document_id, attribute, number);
     }
 
