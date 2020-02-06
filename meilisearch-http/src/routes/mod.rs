@@ -95,15 +95,7 @@ pub fn load_routes(app: &mut tide::App<Data>) {
             });
         });
 
-        router.at("/keys").nest(|router| {
-            router.at("/").get(key::list).post(key::create);
-
-            router
-                .at("/:key")
-                .get(key::get)
-                .put(key::update)
-                .delete(key::delete);
-        });
+        router.at("/keys").get(key::list);
     });
 
     app.at("").nest(|router| {

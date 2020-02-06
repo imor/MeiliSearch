@@ -13,7 +13,7 @@ use tide::{Context, Response};
 use crate::error::{ResponseError, SResult};
 use crate::helpers::tide::ContextExt;
 use crate::models::schema::SchemaBody;
-use crate::models::token::ACL::*;
+use crate::helpers::tide::ACL::*;
 use crate::routes::document::IndexUpdateResponse;
 use crate::Data;
 
@@ -27,7 +27,7 @@ fn generate_uid() -> String {
 }
 
 pub async fn list_indexes(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesRead)?;
+    ctx.is_allowed(Private)?;
 
     let indexes_uids = ctx.state().db.indexes_uids();
 
@@ -85,7 +85,7 @@ struct IndexResponse {
 }
 
 pub async fn get_index(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesRead)?;
+    ctx.is_allowed(Private)?;
 
     let index = ctx.index()?;
 
@@ -140,7 +140,7 @@ struct IndexCreateResponse {
 }
 
 pub async fn create_index(mut ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesWrite)?;
+    ctx.is_allowed(Private)?;
 
     let body = ctx
         .body_json::<IndexCreateRequest>()
@@ -214,7 +214,7 @@ struct UpdateIndexResponse {
 }
 
 pub async fn update_index(mut ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesWrite)?;
+    ctx.is_allowed(Private)?;
 
     let body = ctx
         .body_json::<UpdateIndexRequest>()
@@ -270,7 +270,7 @@ struct SchemaParams {
 }
 
 pub async fn get_index_schema(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesRead)?;
+    ctx.is_allowed(Private)?;
 
     let index = ctx.index()?;
 
@@ -298,7 +298,7 @@ pub async fn get_index_schema(ctx: Context<Data>) -> SResult<Response> {
 }
 
 pub async fn update_schema(mut ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesWrite)?;
+    ctx.is_allowed(Private)?;
 
     let index_uid = ctx.url_param("index")?;
 
@@ -336,7 +336,7 @@ pub async fn update_schema(mut ctx: Context<Data>) -> SResult<Response> {
 }
 
 pub async fn get_update_status(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesRead)?;
+    ctx.is_allowed(Private)?;
 
     let db = &ctx.state().db;
     let reader = db.update_read_txn().map_err(ResponseError::internal)?;
@@ -363,7 +363,7 @@ pub async fn get_update_status(ctx: Context<Data>) -> SResult<Response> {
 }
 
 pub async fn get_all_updates_status(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(IndexesRead)?;
+    ctx.is_allowed(Private)?;
 
     let db = &ctx.state().db;
     let reader = db.update_read_txn().map_err(ResponseError::internal)?;
@@ -381,7 +381,7 @@ pub async fn get_all_updates_status(ctx: Context<Data>) -> SResult<Response> {
 }
 
 pub async fn delete_index(ctx: Context<Data>) -> SResult<StatusCode> {
-    ctx.is_allowed(IndexesWrite)?;
+    ctx.is_allowed(Private)?;
     let _ = ctx.index()?;
     let index_uid = ctx.url_param("index")?;
     ctx.state().db.delete_index(&index_uid).map_err(ResponseError::internal)?;

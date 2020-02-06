@@ -10,7 +10,7 @@ use walkdir::WalkDir;
 
 use crate::error::{ResponseError, SResult};
 use crate::helpers::tide::ContextExt;
-use crate::models::token::ACL::*;
+use crate::helpers::tide::ACL::*;
 use crate::Data;
 
 #[derive(Serialize)]

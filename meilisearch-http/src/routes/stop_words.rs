@@ -4,12 +4,12 @@ use tide::{Context, Response};
 
 use crate::error::{ResponseError, SResult};
 use crate::helpers::tide::ContextExt;
-use crate::models::token::ACL::*;
+use crate::helpers::tide::ACL::*;
 use crate::routes::document::IndexUpdateResponse;
 use crate::Data;
 
 pub async fn list(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(SettingsRead)?;
+    ctx.is_allowed(Private)?;
     let index = ctx.index()?;
 
     let db = &ctx.state().db;
@@ -30,7 +30,7 @@ pub async fn list(ctx: Context<Data>) -> SResult<Response> {
 }
 
 pub async fn add(mut ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(SettingsRead)?;
+    ctx.is_allowed(Private)?;
     let index = ctx.index()?;
 
     let data: Vec<String> = ctx.body_json().await.map_err(ResponseError::bad_request)?;
@@ -56,7 +56,7 @@ pub async fn add(mut ctx: Context<Data>) -> SResult<Response> {
 }
 
 pub async fn delete(mut ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(SettingsRead)?;
+    ctx.is_allowed(Private)?;
     let index = ctx.index()?;
 
     let data: Vec<String> = ctx.body_json().await.map_err(ResponseError::bad_request)?;

@@ -7,7 +7,7 @@ use tide::{Context, Response};
 
 use crate::error::{ResponseError, SResult};
 use crate::helpers::tide::ContextExt;
-use crate::models::token::ACL::*;
+use crate::helpers::tide::ACL::*;
 use crate::routes::document::IndexUpdateResponse;
 use crate::Data;
 
@@ -31,7 +31,7 @@ pub type DistinctField = String;
 pub type RankingRules = HashMap<String, RankingOrdering>;
 
 pub async fn get(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(SettingsRead)?;
+    ctx.is_allowed(Private)?;
     let index = ctx.index()?;
 
     let db = &ctx.state().db;
@@ -65,7 +65,7 @@ fn deserialize_some<'de, T, D>(deserializer: D) -> Result<Option<T>, D::Error>
 }
 
 pub async fn update(mut ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(SettingsWrite)?;
+    ctx.is_allowed(Private)?;
 
     let settings: SettingBody = ctx.body_json().await.map_err(ResponseError::bad_request)?;
 

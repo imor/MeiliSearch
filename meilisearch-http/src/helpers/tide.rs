@@ -1,8 +1,5 @@
 use crate::error::{ResponseError, SResult};
-use crate::models::token::*;
 use crate::Data;
-use chrono::Utc;
-use heed::types::{SerdeBincode, Str};
 use meilisearch_core::Index;
 use tide::Context;
 
@@ -14,62 +11,44 @@ pub trait ContextExt {
     fn identifier(&self) -> Result<String, ResponseError>;
 }
 
+pub enum ACL {
+    Admin,
+    Private,
+    Public
+}
+
 impl ContextExt for Context<Data> {
     fn is_allowed(&self, acl: ACL) -> SResult<()> {
-        let api_key = match &self.state().api_key {
-            Some(api_key) => api_key,
-            None => return Ok(()),
-        };
-
         let user_api_key = self.header("X-Meili-API-Key")?;
-        if user_api_key == *api_key {
-            return Ok(());
-        }
-        let request_index: Option<String> = None; //self.param::<String>("index").ok();
 
-        let db = &self.state().db;
-        let reader = db.main_read_txn().map_err(ResponseError::internal)?;
-
-        let token_key = format!("{}{}", TOKEN_PREFIX_KEY, user_api_key);
-
-        let token_config = db
-            .common_store()
-            .get::<_, Str, SerdeBincode<Token>>(&reader, &token_key)
-            .map_err(ResponseError::internal)?
-            .ok_or(ResponseError::invalid_token(format!(
-                "Api key does not exist: {}",
-                user_api_key
-            )))?;
-
-        if token_config.revoked {
-            return Err(ResponseError::invalid_token("token revoked"));
-        }
-
-        if let Some(index) = request_index {
-            if !token_config
-                .indexes
-                .iter()
-                .any(|r| match_wildcard(&r, &index))
-            {
-                return Err(ResponseError::invalid_token(
-                    "token is not allowed to access to this index",
-                ));
+        match acl {
+            ACL::Admin => {
+                if Some(user_api_key.clone()) == self.state().api_keys.master {
+                    return Ok(())
+                }
+            },
+            ACL::Private => {
+                if Some(user_api_key.clone()) == self.state().api_keys.master {
+                    return Ok(())
+                }
+                if Some(user_api_key.clone()) == self.state().api_keys.private {
+                    return Ok(())
+                }
+            },
+            ACL::Public => {
+                if Some(user_api_key.clone()) == self.state().api_keys.master {
+                    return Ok(())
+                }
+                if Some(user_api_key.clone()) == self.state().api_keys.private {
+                    return Ok(())
+                }
+                if Some(user_api_key.clone()) == self.state().api_keys.public {
+                    return Ok(())
+                }
             }
         }
 
-        if token_config.expires_at < Utc::now() {
-            return Err(ResponseError::invalid_token("token expired"));
-        }
-
-        if token_config.acl.contains(&ACL::All) {
-            return Ok(());
-        }
-
-        if !token_config.acl.contains(&acl) {
-            return Err(ResponseError::invalid_token("no permission"));
-        }
-
-        Ok(())
+        Err(ResponseError::InvalidToken(user_api_key.to_string()))
     }
 
     fn header(&self, name: &str) -> Result<String, ResponseError> {

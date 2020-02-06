@@ -10,11 +10,11 @@ use tide::{Context, Response};
 
 use crate::error::{ResponseError, SResult};
 use crate::helpers::tide::ContextExt;
-use crate::models::token::ACL::*;
+use crate::helpers::tide::ACL::*;
 use crate::Data;
 
 pub async fn get_document(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(DocumentsRead)?;
+    ctx.is_allowed(Public)?;
 
     let index = ctx.index()?;
 
@@ -43,7 +43,7 @@ pub struct IndexUpdateResponse {
 }
 
 pub async fn delete_document(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(DocumentsWrite)?;
+    ctx.is_allowed(Private)?;
 
     let index = ctx.index()?;
     let identifier = ctx.identifier()?;
@@ -75,7 +75,7 @@ struct BrowseQuery {
 }
 
 pub async fn get_all_documents(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(DocumentsRead)?;
+    ctx.is_allowed(Public)?;
 
     let index = ctx.index()?;
     let query: BrowseQuery = ctx.url_query().unwrap_or(BrowseQuery::default());
@@ -140,7 +140,7 @@ fn infered_schema(document: &IndexMap<String, Value>) -> Option<meilisearch_sche
 }
 
 async fn update_multiple_documents(mut ctx: Context<Data>, is_partial: bool) -> SResult<Response> {
-    ctx.is_allowed(DocumentsWrite)?;
+    ctx.is_allowed(Private)?;
 
     let data: Vec<IndexMap<String, Value>> =
         ctx.body_json().await.map_err(ResponseError::bad_request)?;
@@ -196,7 +196,7 @@ pub async fn add_or_update_multiple_documents(ctx: Context<Data>) -> SResult<Res
 }
 
 pub async fn delete_multiple_documents(mut ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(DocumentsWrite)?;
+    ctx.is_allowed(Private)?;
 
     let data: Vec<Value> = ctx.body_json().await.map_err(ResponseError::bad_request)?;
     let index = ctx.index()?;
@@ -226,7 +226,7 @@ pub async fn delete_multiple_documents(mut ctx: Context<Data>) -> SResult<Respon
 }
 
 pub async fn clear_all_documents(ctx: Context<Data>) -> SResult<Response> {
-    ctx.is_allowed(DocumentsWrite)?;
+    ctx.is_allowed(Private)?;
 
     let index = ctx.index()?;
 
