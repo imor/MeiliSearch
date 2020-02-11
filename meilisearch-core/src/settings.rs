@@ -139,7 +139,7 @@ impl FromStr for RankingRule {
 }
 
 impl RankingRule {
-    pub fn get_field(&self) -> Option<&str> {
+    pub fn field(&self) -> Option<&str> {
         match self {
             RankingRule::Asc(field) | RankingRule::Dsc(field) => Some(field),
             _ => None,

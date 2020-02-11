@@ -305,7 +305,7 @@ pub fn serialize_value<'a, T: ?Sized>(
 where
     T: ser::Serialize,
 {
-    let field_id = schema.get_or_create(&attribute)?;
+    let field_id = schema.insert_and_index(&attribute)?;
     serialize_value_with_id(
         txn,
         field_id,
